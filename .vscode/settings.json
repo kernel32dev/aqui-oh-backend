@@ -1,0 +1,11 @@
+{
+    "github.copilot.enable": {
+        "*": false,
+        "dotenv": false,
+        "prisma": true,
+        "typescript": true,
+        "javascript": true,
+        "javascriptreact": true,
+        "typescriptreact": true,
+    }
+}

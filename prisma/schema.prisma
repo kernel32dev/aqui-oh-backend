@@ -1,0 +1,82 @@
+generator client {
+    provider   = "prisma-client-js"
+    engineType = "library"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Competecia {
+    id        String    @id @default(cuid())
+    name      String
+
+    users       User[]
+    reclamacoes Reclamacao[]
+
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    deletedAt DateTime?
+}
+
+model User {
+    id           String    @id @default(cuid())
+    email        String    @unique
+    name         String
+    password     String
+    passwordSalt String
+
+    competeciaId String?
+    competecia   Competecia?  @relation(fields: [competeciaId], references: [id])
+
+    reclamacoes  Reclamacao[]
+    mensagens    Mensagem[]
+
+    createdAt    DateTime  @default(now())
+    updatedAt    DateTime  @updatedAt
+    deletedAt    DateTime?
+}
+
+//crie um enum para o status da reclamação, com os valores: "aberto", "em andamento", "ignorado", "resolvido"
+enum Status {
+    aberto
+    em_andamento
+    ignorado
+    resolvido
+}
+
+model Reclamacao {
+    id        String    @id @default(cuid())
+    title     String
+    status    Status
+
+    competeciaId String
+    competecia   Competecia @relation(fields: [competeciaId], references: [id])
+    userId       String
+    user         User       @relation(fields: [userId], references: [id])
+
+    mensagens    Mensagem[]
+
+    createdAt    DateTime  @default(now())
+    updatedAt    DateTime  @updatedAt
+    deletedAt    DateTime?
+}
+
+model Mensagem {
+    id        String    @id @default(cuid())
+    text      String
+    dth       DateTime
+    image     String?
+    lat       Float?
+    lng       Float?
+
+    reclamacaoId String
+    reclamacao   Reclamacao @relation(fields: [reclamacaoId], references: [id])
+    userId       String
+    user         User       @relation(fields: [userId], references: [id])
+
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    deletedAt DateTime?
+}

@@ -1,0 +1,29 @@
+{
+  "name": "aqui_oh_backend",
+  "version": "0.0.0",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node-dev --respawn --transpile-only src/main.ts",
+    "seed": "node prisma/seed.js",
+    "prisma-deploy": "npx prisma migrate deploy",
+    "prisma-client": "npx prisma generate",
+    "prod": "tsc --noCheck && npm run prisma-deploy && npm run prisma-client && node dist/main.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.20.0",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.7",
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "express-async-errors": "^3.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "prisma": "^5.20.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.6.2",
+    "zod": "^3.23.8"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  }
+}

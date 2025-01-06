@@ -1,8 +1,20 @@
-//@ts-check
-const { PrismaClient } = require('@prisma/client');
+import { PrismaClient } from '@prisma/client';
+import { genPasswordSalt, hashPassword } from '../src/password';
+
 const prisma = new PrismaClient();
 
+async function senha(password: string) {
+    const passwordSalt = genPasswordSalt();
+    return { passwordSalt, password: await hashPassword(password, passwordSalt) };
+}
+
 async function main() {
+    await prisma.mensagem.deleteMany({ where: { reclamacao: { title: 'Reclamação de Teste' } } });
+    await prisma.reclamacao.deleteMany({ where: { title: 'Reclamação de Teste' } });
+    await prisma.user.deleteMany({ where: { email: 'fulano@gmail.com' } });
+    await prisma.user.deleteMany({ where: { email: 'cicrano@gmail.com' } });
+    await prisma.competecia.deleteMany({ where: { name: 'Competência de Teste' } });
+
     const competencia = await prisma.competecia.create({
         data: {
             name: 'Competência de Teste',
@@ -15,9 +27,7 @@ async function main() {
         data: {
             email: 'fulano@gmail.com',
             name: 'Fulano',
-            // SENHA 12345 (com PASSWORD_PEPPER=76dfa480fd5044799c8deec6e88a11a2)
-            password: "cFIW4y82EUus-nzhTbDZYXvN5rkHZdP-wPMVP0u_0-gbPbX1GjBvMGv-FlhftJegiXVy7Jy0M3N9OjKmPHoPKg",
-            passwordSalt: "vvtR20gZrkg",
+            ...await senha("12345"),
             competeciaId: competencia.id,
         },
     });
@@ -28,9 +38,8 @@ async function main() {
         data: {
             email: 'cicrano@gmail.com',
             name: 'Cicrano',
-            // SENHA 12345 (com PASSWORD_PEPPER=76dfa480fd5044799c8deec6e88a11a2)
-            password: "cFIW4y82EUus-nzhTbDZYXvN5rkHZdP-wPMVP0u_0-gbPbX1GjBvMGv-FlhftJegiXVy7Jy0M3N9OjKmPHoPKg",
-            passwordSalt: "vvtR20gZrkg",
+            ...await senha("12345"),
+            competeciaId: null,
         },
     });
 

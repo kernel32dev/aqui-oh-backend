@@ -1,12 +1,10 @@
-import cors from "cors";
 import express from "express";
 import 'express-async-errors';
 import * as auth from "./auth";
 import * as reclamacao from "./reclamacao";
 import { catchApiExceptions as api } from "./error";
-const port = 8080;
+const port = 3001;
 const app = express();
-app.use(cors());
 
 app.use(express.json({ limit: "10mb" }));
 

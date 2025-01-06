@@ -6,7 +6,7 @@ import { CONFLICT, getEnv, UNAUTHORIZED, validate } from "./utils";
 import { AppError, StatusException } from "./error";
 import type { User } from "@prisma/client";
 import { RequestHandler, RouteParameters } from "express-serve-static-core";
-import * as crypto from "node:crypto";
+import { genPasswordSalt, hashPassword } from "./password";
 
 //#region constants
 
@@ -29,13 +29,6 @@ const accessToken = z.object({
 });
 
 const jwtSecret = getEnv("JWT_SECRET");
-
-const passwordHashingConfig = {
-    pepper: getEnv("PASSWORD_PEPPER"),
-    iterations: 10000,
-    keyLength: 64,
-    digest: "sha512",
-};
 
 //#endregion
 
@@ -121,9 +114,10 @@ export async function signoff(req: Request, res: Response) {
 
 /** cria o token de refresh e acesso */
 export async function login(req: Request, res: Response) {
-    const { email, password: plainTextPassword } = validate(req.body, z.object({
+    const { email, password: plainTextPassword, competencia } = validate(req.body, z.object({
         email: z.string().min(1).email(),
         password: z.string().min(1),
+        competencia: z.boolean(),
     }));
     const user = await prisma.user.findFirst({
         select: {
@@ -138,14 +132,17 @@ export async function login(req: Request, res: Response) {
         },
         where: {
             email,
+            competeciaId: competencia ? { not: null } : null,
             deletedAt: null,
         },
     });
     if (!user) {
+        console.warn("TENTATIVA DE LOGIN: usuário não encontrado", email);
         throw new StatusException(UNAUTHORIZED);
     }
     const password = await hashPassword(plainTextPassword, user.passwordSalt);
     if (user.password != password) {
+        console.warn("TENTATIVA DE LOGIN: senha incorreta", email);
         throw new StatusException(UNAUTHORIZED);
     }
 
@@ -298,46 +295,6 @@ function jwtSign(payload: string | Buffer | object, options: jwt.SignOptions) {
             }
             resolve(token);
         });
-    });
-}
-
-//#endregion
-
-//#region password
-
-function genPasswordSalt(): string {
-    return crypto.randomBytes(8).toString("base64url");
-}
-
-function hashPassword(
-    plainText: string,
-    passwordSalt: string
-): Promise<string> {
-    const {
-        pepper: passwordPepper,
-        iterations,
-        keyLength,
-        digest,
-    } = passwordHashingConfig;
-    const salt = Buffer.concat([
-        Buffer.from(passwordPepper),
-        Buffer.from(passwordSalt),
-    ]);
-    return new Promise((resolve, reject) => {
-        crypto.pbkdf2(
-            plainText,
-            salt,
-            iterations,
-            keyLength,
-            digest,
-            (err, derivedKey) => {
-                if (!err) {
-                    resolve(derivedKey.toString("base64url"));
-                } else {
-                    reject(err);
-                }
-            }
-        );
     });
 }
 

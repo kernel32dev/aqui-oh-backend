@@ -1,0 +1,3 @@
+"id","email","name","password","passwordSalt","competeciaId","createdAt","updatedAt","deletedAt"
+"cm5uc3iog0002kkv84vfs2m1z","fulano@gmail.com","Fulano","3Qzz9hwIzQPsiywAp5l-KWX9akdNOuDAvKDQfPTFuj7HrE6cYJeaKfqe4LEnRsFZpt44f5UHMkwhCMrvk6CUWw","E5S4Up6BAzg","cm5uc3ing0000kkv8mi759vsq","2025-01-13 00:57:06.64","2025-01-13 00:57:06.64",NULL
+"cm5uc3ip00004kkv8c6wxgpce","cicrano@gmail.com","Cicrano","5JJ-Ci-133L3DEwsmJ0qa-pbcTnNgJdbiymFMTkIjeJi4EccAyO9dwC2uhiex7lnMhI4IrlD-BBfquPC0_jBTg","ZK_TuaRta0M",NULL,"2025-01-13 00:57:06.66","2025-01-13 00:57:06.66",NULL

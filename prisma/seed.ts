@@ -53,8 +53,22 @@ async function main() {
             status: "aberto",
         },
     });
+    
 
     console.log('Reclamação criada:', reclamacao);
+
+
+    const reclamacao2 = await prisma.reclamacao.create({
+        data: {
+            title: 'Buraco na rua vicente pestana',
+            competeciaId: competencia.id,
+            userId: userInCompetencia.id,
+            status: "aberto",
+        },
+    });
+    
+
+    console.log('Reclamação criada:', reclamacao2);
 
     const mensagens = await prisma.mensagem.createMany({
         data: [
@@ -80,6 +94,32 @@ async function main() {
     });
 
     console.log('Mensagens criadas:', mensagens);
+
+
+    const mensagens2 = await prisma.mensagem.createMany({
+        data: [
+            {
+                text: 'Primeira mensagem na reclamação.',
+                dth: new Date(),
+                reclamacaoId: reclamacao.id,
+                userId: userInCompetencia.id,
+            },
+            {
+                text: 'Segunda mensagem na reclamação.',
+                dth: new Date(),
+                reclamacaoId: reclamacao.id,
+                userId: userInCompetencia.id,
+            },
+            {
+                text: 'Terceira mensagem adicionada.',
+                dth: new Date(),
+                reclamacaoId: reclamacao.id,
+                userId: userOutCompetencia.id,
+            },
+        ],
+    });
+
+    console.log('Mensagens criadas:', mensagens2);
 }
 
 main()

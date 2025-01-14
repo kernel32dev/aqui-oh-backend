@@ -8,6 +8,7 @@ import { AppError } from "./error";
 export const reclamacaoSelect = {
     id: true,
     title: true,
+    status: true,
     competecia: {
         select: {
             id: true,
@@ -25,18 +26,55 @@ export const reclamacaoSelect = {
 } satisfies Prisma.ReclamacaoSelect;
 
 export async function listReclamacao(req: Request, res: Response) {
+    // const query = validate(req.query, z.object({
+    //     title: z.string().optional(),
+    // }));
+
+    // // Log the userId and competeciaId
+    // console.log(`Request userId: ${req.user?.id}, CompeteciaId: ${req.user?.competeciaId}`);
+
+    // const reclamacoes = await prisma.reclamacao.findMany({
+    //     select: reclamacaoSelect,
+    //     where: {
+    //         title: query.title,
+    //         userId: req.user?.competeciaId ? undefined : req.user?.id,
+    //         competeciaId: req.user?.competeciaId || undefined,
+    //         deletedAt: null
+    //     },
+    // });
+
+    // res.json(reclamacoes);
+
+
+
     const query = validate(req.query, z.object({
         title: z.string().optional(),
     }));
-    res.json(await prisma.reclamacao.findMany({
+
+    // Log the userId and competeciaId
+    console.log(`Request userId: ${req.user?.id}, CompeteciaId: ${req.user?.competeciaId}`);
+
+    // Construção condicional da cláusula where
+    const whereClause: any = {
+        title: query.title || undefined,
+        deletedAt: null
+    };
+
+    if (req.user?.competeciaId) {
+        whereClause.competeciaId = req.user.competeciaId;
+    } else if (req.user?.id) {
+        whereClause.userId = req.user.id;
+    }
+
+    const reclamacoes = await prisma.reclamacao.findMany({
         select: reclamacaoSelect,
-        where: {
-            title: query.title,
-            userId: req.user.competeciaId ? undefined : req.user.id,
-            competeciaId: req.user.competeciaId || undefined,
-            deletedAt: null
-        },
-    }));
+        where: whereClause,
+    });
+
+    console.log('Reclamações encontradas:', reclamacoes);
+
+    res.json(reclamacoes);
+    
 }
 
 export async function createReclamacao(req: Request, res: Response) {

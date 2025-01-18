@@ -5,6 +5,7 @@ import * as reclamacao from "./reclamacao";
 import { catchApiExceptions as api } from "./error";
 import cors from "cors"; // 
 import * as mensagem from "./mensagem"; 
+import * as user from "./user";
 const port = 3001;
 const app = express();
 
@@ -30,7 +31,9 @@ app.delete("/api/reclamacao/:reclamacao_id", api(reclamacao.deleteReclamacao));
 
 app.get("/api/mensagem/:reclamacaoId", api(mensagem.getMensagensByReclamacaoId));
 
-
+// Adicione as rotas para o endpoint user
+app.get("/api/user/:userId", api(user.getUser));
+app.post("/api/user", api(user.createUser));
 
 
 app.post("/api/me", (req, res) => {

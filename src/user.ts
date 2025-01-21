@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
-import { validate } from "./utils";
+import { FORBIDDEN, validate } from "./utils";
 import { z } from "zod";
 import { genPasswordSalt, hashPassword } from "./password";
 import { AppError} from "./error";
@@ -8,47 +8,68 @@ import { CONFLICT, NOT_FOUND } from "./utils";
 
 const prisma = new PrismaClient();
 
-export async function getUser(req: Request<{ userId: string }>, res: Response) {
-    const user = await prisma.user.findUnique({
-        where: {
-            id: req.params.userId,
-            deletedAt: null
-        },
+export async function listUser(req: Request<{ userId: string }>, res: Response) {
+    if (!req.user.competeciaId) {
+        throw new AppError(FORBIDDEN, "UserNotInCompetencia");
+    }
+    const users = await prisma.user.findMany({
         select: {
             id: true,
-            email: true,
             name: true,
-            competeciaId: true,
-            password: true, // Inclui o campo senha
+            email: true,
             createdAt: true,
             updatedAt: true
-        }
+        },
+        where: {
+            id: req.params.userId,
+            competeciaId: req.user.competeciaId,
+            deletedAt: null
+        },
+    });
+    res.json(users);
+}
+
+export async function getUser(req: Request<{ userId: string }>, res: Response) {
+    if (!req.user.competeciaId) {
+        throw new AppError(FORBIDDEN, "UserNotInCompetencia");
+    }
+    const user = await prisma.user.findUnique({
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            createdAt: true,
+            updatedAt: true
+        },
+        where: {
+            id: req.params.userId,
+            competeciaId: req.user.competeciaId,
+            deletedAt: null
+        },
     });
 
     if (!user) {
-        throw new AppError(NOT_FOUND, "UserNotFound");
+        throw new AppError(NOT_FOUND, "UserByIdNotFound");
     }
-
-    // Decodifica a senha (não recomendado)
-    const decodedPassword = user.password; // Aqui você pode aplicar a lógica de decodificação se necessário
 
     res.json({
         id: user.id,
         email: user.email,
         name: user.name,
-        competeciaId: user.competeciaId,
-        password: decodedPassword, // Inclui a senha decodificada na resposta
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
     });
 }
 
 export async function createUser(req: Request, res: Response) {
+    if (!req.user.competeciaId) {
+        throw new AppError(FORBIDDEN, "UserNotInCompetencia");
+    }
+
     const body = validate(req.body, z.object({
         email: z.string().email(),
         name: z.string(),
         password: z.string(),
-        competeciaId: z.string().optional()
     }));
 
     const existingUser = await prisma.user.findUnique({
@@ -71,7 +92,7 @@ export async function createUser(req: Request, res: Response) {
             name: body.name,
             password,
             passwordSalt,
-            competeciaId: body.competeciaId || null
+            competeciaId: req.user.competeciaId,
         },
         select: {
             id: true,
@@ -88,87 +109,60 @@ export async function createUser(req: Request, res: Response) {
 
 
 export async function updateUser(req: Request<{ userId: string }>, res: Response) {
+    if (!req.user.competeciaId) {
+        throw new AppError(FORBIDDEN, "UserNotInCompetencia");
+    }
+
     const body = validate(req.body, z.object({
-        email: z.string().email().optional(),
         name: z.string().optional(),
         password: z.string().optional(),
-        competeciaId: z.string().optional()
     }));
 
-    const user = await prisma.user.findUnique({
-        where: {
-            id: req.params.userId,
-            deletedAt: null
-        }
-    });
-
-    if (!user) {
-        throw new AppError(NOT_FOUND, "UserNotFound");
-    }
-
-    if (body.email && body.email !== user.email) {
-        const existingUser = await prisma.user.findUnique({
-            where: {
-                email: body.email,
-                deletedAt: null
-            }
-        });
-
-        if (existingUser) {
-            throw new AppError(CONFLICT, "EmailAlreadyInUse");
-        }
-    }
-
-    let password;
+    let password = undefined;
+    let passwordSalt = undefined;
     if (body.password) {
-        const passwordSalt = genPasswordSalt();
+        passwordSalt = genPasswordSalt();
         password = await hashPassword(body.password, passwordSalt);
     }
 
-    const updatedUser = await prisma.user.update({
+    const exec = await prisma.user.updateMany({
         where: {
             id: req.params.userId
         },
         data: {
-            email: body.email || user.email,
-            name: body.name || user.name,
-            password: password || user.password,
-            passwordSalt: password ? genPasswordSalt() : user.passwordSalt,
-            competeciaId: body.competeciaId || user.competeciaId
+            name: body.name,
+            password,
+            passwordSalt,
         },
-        select: {
-            id: true,
-            email: true,
-            name: true,
-            competeciaId: true,
-            createdAt: true,
-            updatedAt: true
-        }
+        
     });
 
-    res.json(updatedUser);
+    if (exec.count == 0) {
+        throw new AppError(NOT_FOUND, "UserByIdNotFound");
+    }
+
+    res.json({});
 }
 
 export async function deleteUser(req: Request<{ userId: string }>, res: Response) {
-    const user = await prisma.user.findUnique({
-        where: {
-            id: req.params.userId,
-            deletedAt: null
-        }
-    });
-
-    if (!user) {
-        throw new AppError(NOT_FOUND, "UserNotFound");
+    if (!req.user.competeciaId) {
+        throw new AppError(FORBIDDEN, "UserNotInCompetencia");
     }
 
-    await prisma.user.update({
-        where: {
-            id: req.params.userId
-        },
+    const exec = await prisma.user.updateMany({
         data: {
             deletedAt: new Date()
+        },
+        where: {
+            id: req.params.userId,
+            competeciaId: req.user.competeciaId,
+            deletedAt: null,
         }
     });
 
-    res.json({ message: "User deleted successfully" });
+    if (exec.count == 0) {
+        throw new AppError(NOT_FOUND, "UserByIdNotFound");
+    }
+
+    res.json({});
 }

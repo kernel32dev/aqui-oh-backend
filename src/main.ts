@@ -3,7 +3,7 @@ import 'express-async-errors';
 import * as auth from "./auth";
 import * as reclamacao from "./reclamacao";
 import { catchApiExceptions as api } from "./error";
-import cors from "cors"; // 
+import cors from "cors";
 import * as mensagem from "./mensagem"; 
 import * as user from "./user";
 import * as competencia from "./competencia"; 
@@ -32,12 +32,11 @@ app.delete("/api/reclamacao/:reclamacao_id", api(reclamacao.deleteReclamacao));
 
 app.get("/api/mensagem/:reclamacaoId", api(mensagem.getMensagensByReclamacaoId));
 
-// Adicione as rotas para o endpoint user
+app.get("/api/user", api(user.listUser));
 app.get("/api/user/:userId", api(user.getUser));
 app.post("/api/user", api(user.createUser));
-
-app.put("/api/user/:userId", api(user.updateUser)); // Adiciona a rota PUT
-app.delete("/api/user/:userId", api(user.deleteUser)); // Adiciona a rota DELETE
+app.put("/api/user/:userId", api(user.updateUser));
+app.delete("/api/user/:userId", api(user.deleteUser));
 
 // Adicione a rota para buscar competência pelo ID
 app.get("/api/competencia/:competenciaId", api(competencia.getCompetencia));

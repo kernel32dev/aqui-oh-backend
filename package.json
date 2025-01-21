@@ -11,11 +11,15 @@
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
+    "@types/express-ws": "^3.0.5",
     "@types/jsonwebtoken": "^9.0.7",
+    "@types/ws": "^8.5.13",
     "cors": "^2.8.5",
     "express": "^4.21.0",
     "express-async-errors": "^3.1.1",
+    "express-ws": "^5.0.2",
     "jsonwebtoken": "^9.0.2",
     "prisma": "^5.22.0",
     "ts-node-dev": "^2.0.0",
@@ -24,8 +28,5 @@
   },
   "prisma": {
     "seed": "ts-node-dev prisma/seed.ts"
-  },
-  "devDependencies": {
-    "@types/cors": "^2.8.17"
   }
 }

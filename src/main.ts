@@ -1,14 +1,16 @@
 import express from "express";
+import expressWs from "express-ws"; 
 import 'express-async-errors';
 import * as auth from "./auth";
 import * as reclamacao from "./reclamacao";
-import { catchApiExceptions as api } from "./error";
+import { catchApiExceptions as api, catchWsExceptions as ws } from "./error";
 import cors from "cors";
 import * as mensagem from "./mensagem"; 
 import * as user from "./user";
 import * as competencia from "./competencia"; 
+
 const port = 3001;
-const app = express();
+const app = expressWs(express()).app;
 
 app.use(cors()); 
 app.use(express.json({ limit: "10mb" }));
@@ -31,6 +33,7 @@ app.put("/api/reclamacao/:reclamacao_id", api(reclamacao.updateReclamacao));
 app.delete("/api/reclamacao/:reclamacao_id", api(reclamacao.deleteReclamacao));
 
 app.get("/api/mensagem/:reclamacaoId", api(mensagem.getMensagensByReclamacaoId));
+app.ws("/api/mensagem/:reclamacaoId", ws(mensagem.connect))
 
 app.get("/api/user", api(user.listUser));
 app.get("/api/user/:userId", api(user.getUser));

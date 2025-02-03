@@ -197,7 +197,7 @@ declare global {
 }
 
 export async function auth(req: Request<any>) {
-    const authorization = req.headers.authorization || "";
+    const authorization = req.headers.authorization || (typeof req.query.auth == "string" && req.query.auth) || "";
     if (
         !authorization.toUpperCase().startsWith("BEARER ") ||
         authorization.length <= 7

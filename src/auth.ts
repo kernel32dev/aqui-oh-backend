@@ -196,7 +196,7 @@ declare global {
     }
 }
 
-export const authMiddleware: RequestHandler<RouteParameters<string>> = async (req, res, next) => {
+export async function auth(req: Request<any>) {
     const authorization = req.headers.authorization || "";
     if (
         !authorization.toUpperCase().startsWith("BEARER ") ||
@@ -213,8 +213,7 @@ export const authMiddleware: RequestHandler<RouteParameters<string>> = async (re
     if (verifyErr || !parsed.success) {
         throw new AppError(UNAUTHORIZED, "token_invalido", "o token JWT é inválido ou expirou");
     }
-
-    req.user = {
+    return {
         id: parsed.data.id,
         email: parsed.data.email,
         name: parsed.data.name,
@@ -222,7 +221,10 @@ export const authMiddleware: RequestHandler<RouteParameters<string>> = async (re
         createdAt: new Date(parsed.data.createdAt),
         updatedAt: new Date(parsed.data.updatedAt),
     };
+}
 
+export const authMiddleware: RequestHandler<RouteParameters<string>> = async (req, res, next) => {
+    req.user = await auth(req);
     next();
 }
 

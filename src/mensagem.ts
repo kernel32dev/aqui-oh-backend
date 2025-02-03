@@ -4,6 +4,7 @@ import { NOT_FOUND } from "./utils";
 import type { WebSocket } from "ws";
 import { prisma } from "./db";
 import type { Prisma } from "@prisma/client";
+import { auth } from "./auth";
 
 const sockets = new Map<string, Set<WebSocket>>();
 
@@ -34,6 +35,7 @@ export async function getMensagensByReclamacaoId(req: Request<{ reclamacaoId: st
 }
 
 export async function connect(ws: WebSocket, req: Request<{ reclamacaoId: string }>) {
+    req.user = await auth(req);
     const reclamacao = await prisma.reclamacao.findFirst({
         select: {
             status: true,

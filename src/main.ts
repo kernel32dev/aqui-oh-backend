@@ -24,6 +24,7 @@ app.post("/api/signoff", api(auth.signoff));
 app.post("/api/login", api(auth.login));
 app.post("/api/refresh", api(auth.refresh));
 
+app.ws("/api/mensagem/:reclamacaoId", ws(mensagem.connect));
 app.use(api(auth.authMiddleware));
 
 app.get("/api/reclamacao", api(reclamacao.listReclamacao));
@@ -33,7 +34,6 @@ app.put("/api/reclamacao/:reclamacao_id", api(reclamacao.updateReclamacao));
 app.delete("/api/reclamacao/:reclamacao_id", api(reclamacao.deleteReclamacao));
 
 app.get("/api/mensagem/:reclamacaoId", api(mensagem.getMensagensByReclamacaoId));
-app.ws("/api/mensagem/:reclamacaoId", ws(mensagem.connect))
 
 app.get("/api/user", api(user.listUser));
 app.get("/api/user/:userId", api(user.getUser));

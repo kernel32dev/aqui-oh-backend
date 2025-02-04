@@ -15,6 +15,12 @@ const app = expressWs(express()).app;
 app.use(cors()); 
 app.use(express.json({ limit: "10mb" }));
 
+app.use('/static', express.static('../aqui-oh-frontend/dist/static'));
+
+app.get(/^\/(?!api).*/, (req, res) => {
+    res.sendFile('../aqui-oh-frontend/dist/index.html');
+});
+
 app.get("/api/ping", (req, res) => {
     res.send("pong");
 });
@@ -41,18 +47,11 @@ app.post("/api/user", api(user.createUser));
 app.put("/api/user/:userId", api(user.updateUser));
 app.delete("/api/user/:userId", api(user.deleteUser));
 
-// Adicione a rota para buscar competência pelo ID
 app.get("/api/competencia/:competenciaId", api(competencia.getCompetencia));
 app.get("/api/competencias", api(competencia.listCompetencias));
 
 app.post("/api/me", (req, res) => {
     res.json(req.user);
-});
-
-app.use('/static', express.static('../aqui-oh-frontend/dist/static'));
-
-app.get('*', (req, res) => {
-    res.sendFile('../aqui-oh-frontend/dist/index.html');
 });
 
 app.listen(port, () => {

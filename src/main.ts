@@ -45,9 +45,14 @@ app.delete("/api/user/:userId", api(user.deleteUser));
 app.get("/api/competencia/:competenciaId", api(competencia.getCompetencia));
 app.get("/api/competencias", api(competencia.listCompetencias));
 
-
 app.post("/api/me", (req, res) => {
     res.json(req.user);
+});
+
+app.use('/static', express.static('../aqui-oh-frontend/dist/static'));
+
+app.get('*', (req, res) => {
+    res.sendFile('../aqui-oh-frontend/dist/index.html');
 });
 
 app.listen(port, () => {

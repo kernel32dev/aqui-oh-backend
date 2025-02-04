@@ -7,7 +7,7 @@
     "seed": "node prisma/seed.js",
     "prisma-deploy": "npx prisma migrate deploy",
     "prisma-client": "npx prisma generate",
-    "prod": "tsc --noCheck && npm run prisma-deploy && npm run prisma-client && node dist/main.js"
+    "prod": "tsc --noCheck && npm run prisma-deploy && npm run prisma-client && node dist/src/main.js"
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",

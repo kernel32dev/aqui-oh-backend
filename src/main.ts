@@ -49,6 +49,7 @@ app.post("/api/user", api(user.createUser));
 app.put("/api/user/:userId", api(user.updateUser));
 app.delete("/api/user/:userId", api(user.deleteUser));
 
+// Adicione a rota para buscar competência pelo ID
 app.get("/api/competencia/:competenciaId", api(competencia.getCompetencia));
 app.get("/api/competencias", api(competencia.listCompetencias));
 

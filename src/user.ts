@@ -43,7 +43,6 @@ export async function getUser(req: Request<{ userId: string }>, res: Response) {
         },
         where: {
             id: req.params.userId,
-            competeciaId: req.user.competeciaId,
             deletedAt: null
         },
     });

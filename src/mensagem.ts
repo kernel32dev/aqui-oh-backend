@@ -72,6 +72,37 @@ export async function connect(ws: WebSocket, req: Request<{ reclamacaoId: string
     let set = sockets.get(req.params.reclamacaoId);
     if (!set) sockets.set(req.params.reclamacaoId, set = new Set());
     set.add(ws);
+
+
+
+
+    ws.on("message", async (data) => {
+        try {
+            const mensagem = JSON.parse(data.toString());
+    
+            // Salva a mensagem no banco de dados
+            const novaMensagem = await prisma.mensagem.create({
+                data: {
+                    text: mensagem.text,
+                    dth: new Date(),
+                    image: mensagem.image || null,
+                    lat: mensagem.lat || null,
+                    lng: mensagem.lng || null,
+                    userId: req.user.id,
+                    reclamacaoId: req.params.reclamacaoId,
+                },
+                select: mensagemSelect,
+            });
+    
+            // Envia a mensagem para todos os clientes conectados
+            await emitLiveMessage(req.params.reclamacaoId, novaMensagem);
+    
+        } catch (error) {
+            console.error("Erro ao processar mensagem:", error);
+        }
+    });
+
+    
     ws.on("error", () => set.delete(ws));
     ws.on("close", () => set.delete(ws));
 }
@@ -93,3 +124,4 @@ export async function emitLiveMessage(reclamacaoId: string, message: {
         ws.send(json);
     }
 }
+

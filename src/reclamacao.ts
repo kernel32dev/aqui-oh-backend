@@ -53,22 +53,17 @@ export async function listReclamacao(req: Request, res: Response) {
 
     // Log the userId and competeciaId
     console.log(`Request userId: ${req.user?.id}, CompeteciaId: ${req.user?.competeciaId}`);
-
-    // Construção condicional da cláusula where
-    const whereClause: any = {
-        title: query.title || undefined,
-        deletedAt: null
-    };
-
-    if (req.user?.competeciaId) {
-        whereClause.competeciaId = req.user.competeciaId;
-    } else if (req.user?.id) {
-        whereClause.userId = req.user.id;
-    }
-
     const reclamacoes = await prisma.reclamacao.findMany({
         select: reclamacaoSelect,
-        where: whereClause,
+        where: {
+            title: !query.title ? undefined : {
+                contains: query.title,
+                mode: "insensitive",
+            },
+            competeciaId: req.user.competeciaId || undefined,
+            userId: req.user.competeciaId ? undefined : req.user.id,
+            deletedAt: null,
+        },
     });
 
     console.log('Reclamações encontradas:', reclamacoes);
@@ -80,18 +75,45 @@ export async function listReclamacao(req: Request, res: Response) {
 export async function createReclamacao(req: Request, res: Response) {
     if (req.user.competeciaId) throw new AppError(FORBIDDEN, "CompetenciaCannotCreateReclamacaoError");
     const body = validate(req.body, z.object({
-        title: z.string(),
-        competeciaId: z.string(),
+        title: z.string().min(1),
+        competeciaId: z.string().nullable().optional(),
+        text: z.string().min(1),
+        image: z.string().min(1),
+        lat: z.number().min(-90).max(90),
+        lng: z.number().min(-180).max(180),
     }));
-    res.json(await prisma.reclamacao.create({
+    body.competeciaId = body.competeciaId || await prisma.competecia.findFirst({
+        select: {
+            id: true,
+        },
+        where: {
+            deletedAt: null,
+        },
+    }).then(x => x?.id);
+    if (!body.competeciaId) {
+        throw new AppError(NOT_FOUND, "CompetenciaByIdNotFound");
+    }
+    const result = await prisma.reclamacao.create({
         select: reclamacaoSelect,
         data: {
             userId: req.user.id,
-            title: body.title,
+            title: body.title.trim(),
             status: "aberto",
             competeciaId: body.competeciaId,
+            mensagens: {
+                create: {
+                    text: body.text.trim(),
+                    image: body.image,
+                    lat: body.lat,
+                    lng: body.lng,
+                    dth: new Date(),
+                    userId: req.user.id,
+                }
+            }
         }
-    }));
+    });
+    console.log(result);
+    res.json(result);
 }
 
 export async function getReclamacao(req: Request<{ reclamacao_id: string }>, res: Response) {

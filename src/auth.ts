@@ -41,7 +41,7 @@ export async function signin(req: Request, res: Response) {
         password: z.string().min(1),
     }));
 
-    if (!await prisma.user.findFirst({
+    if (await prisma.user.findFirst({
         select: {
             email: true,
         },

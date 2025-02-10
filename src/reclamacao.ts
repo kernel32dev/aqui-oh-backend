@@ -4,6 +4,7 @@ import { FORBIDDEN, NOT_FOUND, validate } from "./utils";
 import { prisma } from "./db";
 import { Prisma } from "@prisma/client";
 import { AppError } from "./error";
+import { mensagemSelect } from "./mensagem";
 
 export const reclamacaoSelect = {
     id: true,
@@ -20,6 +21,13 @@ export const reclamacaoSelect = {
             id: true,
             name: true,
         },
+    },
+    mensagens: {
+        take: 1,
+        orderBy: {
+            createdAt: "asc"
+        },
+        select: mensagemSelect,
     },
     createdAt: true,
     updatedAt: true,
